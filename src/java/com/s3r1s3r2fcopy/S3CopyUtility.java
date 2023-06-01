@@ -4,9 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
-import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
-import software.amazon.awssdk.services.s3.model.S3Object;
+import software.amazon.awssdk.services.s3.model.*;
 
 import java.util.List;
 import java.util.ListIterator;
@@ -17,20 +15,44 @@ public class S3CopyUtility implements CommandLineRunner {
     @Value("${app.s3bucket.source}")
     private String sourceBucketName;
 
+    @Value("${app.s3bucket.target}")
+    private String targetBucketName;
+
     @Override
     public void run(String... args) throws Exception {
-        System.out.println("Started list");
+        System.out.println("Started copy");
+
+        //S3Client client = S3Client.builder().build();
+        //ListObjectsRequest request = ListObjectsRequest.builder()
+        //                                               .bucket(sourceBucketName)
+        //                                               .build();
+        //ListObjectsResponse response = client.listObjects(request);
+        //List<S3Object> objects = response.contents();
+        //ListIterator<S3Object> listIterator = objects.listIterator();
+        //while (listIterator.hasNext()) {
+        //    S3Object object = listIterator.next();
+        //    System.out.println(object.key() + " - " + object.size());
+        //}
+
         S3Client client = S3Client.builder().build();
-        ListObjectsRequest request = ListObjectsRequest.builder()
-                                                       .bucket(sourceBucketName)
-                                                       .build();
-        ListObjectsResponse response = client.listObjects(request);
-        List<S3Object> objects = response.contents();
-        ListIterator<S3Object> listIterator = objects.listIterator();
-        while (listIterator.hasNext()) {
-            S3Object object = listIterator.next();
-            System.out.println(object.key() + " - " + object.size());
+
+        CopyObjectRequest copyReq = CopyObjectRequest.builder()
+                .sourceBucket(sourceBucketName)
+                .sourceKey("test.txt")
+                .destinationBucket(targetBucketName)
+                .destinationKey("test.txt")
+                .build();
+
+        try {
+            CopyObjectResponse copyRes = client.copyObject(copyReq);
+            System.out.println(copyRes.copyObjectResult().toString());
+
+        } catch (S3Exception e) {
+            System.err.println(e.awsErrorDetails().errorMessage());
+            System.exit(1);
         }
+
+        System.out.println("Finished");
     }
 
 }
