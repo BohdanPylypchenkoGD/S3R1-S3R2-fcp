@@ -25,20 +25,9 @@ public class S3CopyUtility implements CommandLineRunner {
     private String targetBucketRegion;
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
+        // Dummy logging
         System.out.println("Started copy");
-
-        // Creating client
-        //S3Client client = S3Client.builder()
-        //                          .serviceConfiguration(S3Configuration.builder()
-        //                                                               .useArnRegionEnabled(true)
-        //                                                               .multiRegionEnabled(true)
-        //                                                               .build())
-        //                          .build();
-
-        //S3Client client = S3Client.builder()
-        //                          .useArnRegion(true)
-        //                          .build();
 
         // Creating client
         S3Client listClient = S3Client.builder().region(Region.of(sourceBucketRegion)).build();
@@ -78,6 +67,7 @@ public class S3CopyUtility implements CommandLineRunner {
                    }
                });
 
+        // Dummy logging
         System.out.println("Finished");
     }
 
