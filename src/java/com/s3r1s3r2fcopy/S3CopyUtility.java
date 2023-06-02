@@ -5,7 +5,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.*;
 
 import java.util.List;
@@ -22,7 +21,7 @@ public class S3CopyUtility implements CommandLineRunner {
     @Value("${app.s3bucket.targetBucketName}")
     private String targetBucketName;
 
-    @Value("${app.s3bucket.targetBucketRegion")
+    @Value("${app.s3bucket.targetBucketRegion}")
     private String targetBucketRegion;
 
     @Override
@@ -42,42 +41,44 @@ public class S3CopyUtility implements CommandLineRunner {
         //                          .build();
 
         // Creating client
-        S3Client client = S3Client.builder().region(Region.of(sourceBucketRegion)).build();
+        S3Client listClient = S3Client.builder().region(Region.of(sourceBucketRegion)).build();
 
         // List request
         ListObjectsRequest request = ListObjectsRequest.builder()
                                                        .bucket(sourceBucketName)
                                                        .build();
 
-        // Getting response
-        ListObjectsResponse response = client.listObjects(request);
+        // Getting list response
+        ListObjectsResponse listResponse = listClient.listObjects(request);
 
         // Getting objects
-        List<S3Object> objects = response.contents();
+        List<S3Object> objects = listResponse.contents();
 
-        // Printing
-        objects.stream().forEach((S3Object e) -> System.out.println(e.key() + " - " + e.size()));
+        // Creating client for copying
+        S3Client copyClient = S3Client.builder().region(Region.of(targetBucketRegion)).build();
+
+        // Copying
+        objects.parallelStream()
+               .forEach((S3Object s3obj) -> {
+                   // Creating copy request for current object
+                   CopyObjectRequest copyRequest = CopyObjectRequest.builder()
+                                                                    .sourceBucket(sourceBucketName)
+                                                                    .sourceKey(s3obj.key())
+                                                                    .destinationBucket(targetBucketName)
+                                                                    .destinationKey(s3obj.key())
+                                                                    .build();
+
+                   // Executing
+                   try {
+                       CopyObjectResponse copyResponse = copyClient.copyObject(copyRequest);
+                       System.out.println(copyResponse.copyObjectResult().toString());
+                   } catch (S3Exception e) {
+                       System.err.println(e.awsErrorDetails().errorMessage());
+                       System.exit(1);
+                   }
+               });
 
         System.out.println("Finished");
     }
-
-        //S3Client client = S3Client.builder().build();
-
-        //CopyObjectRequest copyReq = CopyObjectRequest.builder()
-        //        .sourceBucket(sourceBucketName)
-        //        .sourceKey("test.txt")
-        //        .destinationBucket(targetBucketName)
-        //        .destinationKey("test.txt")
-        //        .build();
-
-        //try {
-        //    CopyObjectResponse copyRes = client.copyObject(copyReq);
-        //    System.out.println(copyRes.copyObjectResult().toString());
-
-        //} catch (S3Exception e) {
-        //    System.err.println(e.awsErrorDetails().errorMessage());
-        //    System.exit(1);
-        //}
-
 
 }
