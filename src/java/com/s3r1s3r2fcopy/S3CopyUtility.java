@@ -5,35 +5,61 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.*;
 
 import java.util.List;
-import java.util.ListIterator;
 
 @Component
 public class S3CopyUtility implements CommandLineRunner {
 
-    @Value("${app.s3bucket.sourceBucket}")
+    @Value("${app.s3bucket.sourceBucketName}")
     private String sourceBucketName;
 
-    @Value("${app.s3bucket.targetBucket}")
+    @Value("${app.s3bucket.sourceBucketRegion}")
+    private String sourceBucketRegion;
+
+    @Value("${app.s3bucket.targetBucketName}")
     private String targetBucketName;
+
+    @Value("${app.s3bucket.targetBucketRegion")
+    private String targetBucketRegion;
 
     @Override
     public void run(String... args) throws Exception {
-        System.out.println("Started list");
+        System.out.println("Started copy");
 
-        S3Client client = S3Client.builder().region(Region.US_EAST_1).build();
+        // Creating client
+        //S3Client client = S3Client.builder()
+        //                          .serviceConfiguration(S3Configuration.builder()
+        //                                                               .useArnRegionEnabled(true)
+        //                                                               .multiRegionEnabled(true)
+        //                                                               .build())
+        //                          .build();
+
+        //S3Client client = S3Client.builder()
+        //                          .useArnRegion(true)
+        //                          .build();
+
+        // Creating client
+        S3Client client = S3Client.builder().region(Region.of(sourceBucketRegion)).build();
+
+        // List request
         ListObjectsRequest request = ListObjectsRequest.builder()
                                                        .bucket(sourceBucketName)
                                                        .build();
+
+        // Getting response
         ListObjectsResponse response = client.listObjects(request);
+
+        // Getting objects
         List<S3Object> objects = response.contents();
-        ListIterator<S3Object> listIterator = objects.listIterator();
-        while (listIterator.hasNext()) {
-            S3Object object = listIterator.next();
-            System.out.println(object.key() + " - " + object.size());
-        }
+
+        // Printing
+        objects.stream().forEach((S3Object e) -> System.out.println(e.key() + " - " + e.size()));
+
+        System.out.println("Finished");
+    }
 
         //S3Client client = S3Client.builder().build();
 
@@ -53,7 +79,5 @@ public class S3CopyUtility implements CommandLineRunner {
         //    System.exit(1);
         //}
 
-        System.out.println("Finished");
-    }
 
 }
