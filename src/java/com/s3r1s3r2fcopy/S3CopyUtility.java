@@ -29,23 +29,18 @@ public class S3CopyUtility implements CommandLineRunner {
         // Dummy logging
         System.out.println("Start copy");
 
-        // S3 client for listing (bound to source region)
-        AmazonS3 listS3Client = AmazonS3ClientBuilder.standard()
-                                                     .withRegion(Regions.fromName(sourceBucketRegion))
-                                                     .build();
-
-        // S3 client for copying (bound to target region)
-        AmazonS3 copyS3Client = AmazonS3ClientBuilder.standard()
-                                                     .withRegion(Regions.fromName(targetBucketRegion))
-                                                     .build();
+        // S3 client (can access multiple regions)
+        AmazonS3 s3 = AmazonS3ClientBuilder.standard()
+                                           .enableForceGlobalBucketAccess()
+                                           .build();
 
         // Copying
-        for (S3ObjectSummary objectSummary : listS3Client.listObjects(sourceBucketName).getObjectSummaries()) {
+        for (S3ObjectSummary objectSummary : s3.listObjects(sourceBucketName).getObjectSummaries()) {
             // Creating request for current object
             CopyObjectRequest copyRequest = new CopyObjectRequest(sourceBucketName, objectSummary.getKey(),
                                                                   targetBucketName, objectSummary.getKey());
             // Copying current object
-            copyS3Client.copyObject(copyRequest);
+            s3.copyObject(copyRequest);
 
             // Dummy logging
             System.out.printf("Copied object: %s\n", objectSummary.getKey());
