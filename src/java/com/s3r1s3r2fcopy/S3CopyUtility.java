@@ -1,46 +1,37 @@
 package com.s3r1s3r2fcopy;
 
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.stereotype.Component;
+import com.s3r1s3r2fcopy.S3ClientProvider.S3ClientProvider;
 
-@Component
-public class S3CopyUtility implements CommandLineRunner {
+public class S3CopyUtility {
 
-    @Value("${app.s3bucket.sourceBucketName}")
-    private String sourceBucketName;
+    private final String sourceBucketName;
 
-    @Value("${app.s3bucket.sourceBucketRegion}")
-    private String sourceBucketRegion;
+    private final String targetBucketName;
 
-    @Value("${app.s3bucket.targetBucketName}")
-    private String targetBucketName;
+    private final S3ClientProvider s3ClientProvider;
 
-    @Value("${app.s3bucket.targetBucketRegion}")
-    private String targetBucketRegion;
+    public S3CopyUtility(String sourceBucketName, String targetBucketName,
+                         S3ClientProvider s3ClientProvider) {
+        this.sourceBucketName = sourceBucketName;
+        this.targetBucketName = targetBucketName;
+        this.s3ClientProvider = s3ClientProvider;
+    }
 
-    @Override
-    public void run(String... args) {
+    public void run() {
         // Dummy logging
         System.out.println("Start copy");
 
-        // S3 client (can access multiple regions)
-        AmazonS3 s3 = AmazonS3ClientBuilder.standard()
-                                           .enableForceGlobalBucketAccess()
-                                           .build();
-
         // Copying
-        for (S3ObjectSummary objectSummary : s3.listObjects(sourceBucketName).getObjectSummaries()) {
+        for (S3ObjectSummary objectSummary : s3ClientProvider.getS3Client4ListRequest()
+                                                             .listObjects(sourceBucketName)
+                                                             .getObjectSummaries()) {
             // Creating request for current object
             CopyObjectRequest copyRequest = new CopyObjectRequest(sourceBucketName, objectSummary.getKey(),
                                                                   targetBucketName, objectSummary.getKey());
             // Copying current object
-            s3.copyObject(copyRequest);
+            s3ClientProvider.getS3Client4CopyRequest().copyObject(copyRequest);
 
             // Dummy logging
             System.out.printf("Copied object: %s\n", objectSummary.getKey());
