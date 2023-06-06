@@ -1,0 +1,1 @@
+IAM role with AdministratorAccess was created for copy service ec2 instance.

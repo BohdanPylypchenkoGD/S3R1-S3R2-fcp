@@ -5,7 +5,7 @@
       "Sid": "DelegateS3Access",
       "Effect": "Allow",
       "Principal": {
-        "AWS": "arn:aws:iam::353843273330:role/S3MigrationRole"
+        "AWS": "arn:aws:iam::353843273330:role/S3MigrationPolicyForSourceService"
       },
       "Action": [
         "s3:ListBucket",
