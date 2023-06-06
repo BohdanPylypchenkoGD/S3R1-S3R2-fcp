@@ -11,11 +11,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class AmazonS3Manager {
 
-    @Value("${app.amazonS3manager.roleArn}")
-    private String roleArn;
+    //@Value("${app.amazonS3manager.roleArn}")
+    //private String roleArn;
 
-    @Value("${app.amazonS3manager.roleSessionName}")
-    private String roleSessionName;
+    //@Value("${app.amazonS3manager.roleSessionName}")
+    //private String roleSessionName;
 
     private AWSSecurityTokenService stsClient;
 
