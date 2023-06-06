@@ -32,7 +32,7 @@ public class S3CopyUtility implements ApplicationRunner {
 
         // Copying
         for (S3ObjectSummary objectSummary : amazonS3.listObjects(sourceBucketName)
-                .getObjectSummaries()) {
+                                                     .getObjectSummaries()) {
             // Creating request for current object
             CopyObjectRequest copyRequest = new CopyObjectRequest(sourceBucketName, objectSummary.getKey(),
                                                                   targetBucketName, objectSummary.getKey());
